@@ -54,6 +54,7 @@ class LoadDataFixturesDoctrineCommand extends DoctrineCommand
             ->addOption('em', null, InputOption::VALUE_REQUIRED, 'The entity manager to use for this command.')
             ->addOption('shard', null, InputOption::VALUE_REQUIRED, 'The shard connection to use for this command.')
             ->addOption('purge-with-truncate', null, InputOption::VALUE_NONE, 'Purge data by using a database-level TRUNCATE statement')
+            ->addOption('exclude-table', null, InputOption::VALUE_IS_ARRAY|InputOption::VALUE_OPTIONAL, 'Do not purge the database table with this name')
             ->setHelp(<<<EOT
 The <info>%command.name%</info> command loads data fixtures from your application:
 
@@ -69,6 +70,10 @@ By default Doctrine Data Fixtures uses DELETE statements to drop the existing ro
 If you want to use a TRUNCATE statement instead you can use the <comment>--purge-with-truncate</comment> flag:
 
   <info>php %command.full_name%</info> <comment>--purge-with-truncate</comment>
+
+To ignore certain tables from deletion/truncation, use:
+
+  <info>php %command.full_name%</info> <comment>--exclude-table=tablename</comment>
 
 To execute only fixtures that live in a certain group, use:
 
@@ -104,6 +109,7 @@ EOT
 
         $groups   = $input->getOption('group');
         $fixtures = $this->fixturesLoader->getFixtures($groups);
+        $excluded = $input->getOption('exclude-table');
         if (! $fixtures) {
             $message = 'Could not find any fixture services to load';
 
@@ -115,7 +121,7 @@ EOT
 
             return 1;
         }
-        $purger = new ORMPurger($em);
+        $purger = new ORMPurger($em, $excluded);
         $purger->setPurgeMode($input->getOption('purge-with-truncate') ? ORMPurger::PURGE_MODE_TRUNCATE : ORMPurger::PURGE_MODE_DELETE);
         $executor = new ORMExecutor($em, $purger);
         $executor->setLogger(static function ($message) use ($ui) : void {
