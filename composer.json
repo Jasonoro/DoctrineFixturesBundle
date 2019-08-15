@@ -1,5 +1,5 @@
 {
-    "name": "doctrine/doctrine-fixtures-bundle",
+    "name": "jasonoro/doctrine-fixtures-bundle",
     "type": "symfony-bundle",
     "description": "Symfony DoctrineFixturesBundle",
     "keywords": ["Persistence", "Fixture"],
